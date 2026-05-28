@@ -1,0 +1,302 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  userId       BigInt    @id @default(autoincrement()) @map("user_id") @db.UnsignedBigInt
+  wechatOpenid String?   @unique(map: "uk_openid") @map("wechat_openid") @db.VarChar(64)
+  unionId      String?   @map("union_id") @db.VarChar(64)
+  adminAccount String?   @unique(map: "uk_admin_account") @map("admin_account") @db.VarChar(64)
+  nickname     String    @db.VarChar(64)
+  avatar       String?   @db.VarChar(512)
+  bio          String?   @db.VarChar(200)
+  gender       Int       @default(0) @db.TinyInt
+  age          Int?      @db.TinyInt
+  showGender   Int       @default(1) @map("show_gender") @db.TinyInt
+  showAge      Int       @default(1) @map("show_age") @db.TinyInt
+  role         Int       @default(0) @db.TinyInt
+  status       Int       @default(0) @db.TinyInt
+  passwordHash String?   @map("password_hash") @db.VarChar(128)
+  lastLoginAt  DateTime? @map("last_login_at") @db.DateTime(0)
+  createTime   DateTime  @default(now()) @map("create_time") @db.DateTime(0)
+  updateTime   DateTime  @updatedAt @map("update_time") @db.DateTime(0)
+  deletedAt    DateTime? @map("deleted_at") @db.DateTime(0)
+
+  posts             Post[]       @relation("UserPosts")
+  comments          Comment[]    @relation("UserComments")
+  replyTargetComments Comment[]  @relation("CommentReplyToUser")
+  postLikes         PostLike[]
+  following         UserFollow[] @relation("Follower")
+  followers         UserFollow[] @relation("Following")
+  receivedMessages  Message[]    @relation("MessageToUser")
+  sentMessages      Message[]    @relation("MessageFromUser")
+  uploadedFiles     File[]
+  reports           Report[]     @relation("Reporter")
+  handledReports    Report[]     @relation("ReportHandler")
+  notices           Notice[]     @relation("NoticeOperator")
+  adminLogs         AdminLog[]   @relation("AdminLogOperator")
+  sensitiveWordOps  SensitiveWord[]
+  profileReviews    ProfileReview[] @relation("ProfileReviewUser")
+  handledReviews    ProfileReview[] @relation("ProfileReviewHandler")
+
+  @@index([role, status], map: "idx_role_status")
+  @@index([createTime], map: "idx_create_time")
+  @@map("user")
+}
+
+model Category {
+  categoryId    Int      @id @default(autoincrement()) @map("category_id") @db.UnsignedInt
+  categoryName  String   @unique(map: "uk_category_name") @map("category_name") @db.VarChar(50)
+  categoryDesc  String?  @map("category_desc") @db.VarChar(200)
+  sortOrder     Int      @default(0) @map("sort_order")
+  status        Int      @default(0) @db.TinyInt
+  allowUserPost Int      @default(1) @map("allow_user_post") @db.TinyInt
+  createTime    DateTime @default(now()) @map("create_time") @db.DateTime(0)
+  updateTime    DateTime @updatedAt @map("update_time") @db.DateTime(0)
+
+  posts Post[]
+
+  @@map("category")
+}
+
+model Post {
+  postId       BigInt    @id @default(autoincrement()) @map("post_id") @db.UnsignedBigInt
+  userId       BigInt    @map("user_id") @db.UnsignedBigInt
+  categoryId   Int       @map("category_id") @db.UnsignedInt
+  title        String    @db.VarChar(100)
+  content      String    @db.Text
+  imageUrls    Json?     @map("image_urls")
+  likeCount    Int       @default(0) @map("like_count") @db.UnsignedInt
+  commentCount Int       @default(0) @map("comment_count") @db.UnsignedInt
+  viewCount    Int       @default(0) @map("view_count") @db.UnsignedInt
+  status       Int       @default(0) @db.TinyInt
+  rejectReason String?   @map("reject_reason") @db.VarChar(200)
+  isTop        Int       @default(0) @map("is_top") @db.TinyInt
+  createTime   DateTime  @default(now()) @map("create_time") @db.DateTime(0)
+  updateTime   DateTime  @updatedAt @map("update_time") @db.DateTime(0)
+  deletedAt    DateTime? @map("deleted_at") @db.DateTime(0)
+
+  author   User       @relation("UserPosts", fields: [userId], references: [userId])
+  category Category   @relation(fields: [categoryId], references: [categoryId])
+  comments Comment[]
+  likes    PostLike[]
+
+  @@index([userId, createTime], map: "idx_user")
+  @@index([categoryId, status, createTime], map: "idx_cat_status")
+  @@index([status, isTop, createTime], map: "idx_status_top")
+  @@map("post")
+}
+
+model Comment {
+  commentId     BigInt    @id @default(autoincrement()) @map("comment_id") @db.UnsignedBigInt
+  postId        BigInt    @map("post_id") @db.UnsignedBigInt
+  userId        BigInt    @map("user_id") @db.UnsignedBigInt
+  parentId      BigInt?   @map("parent_id") @db.UnsignedBigInt
+  replyToUserId BigInt?   @map("reply_to_user_id") @db.UnsignedBigInt
+  content       String    @db.Text
+  likeCount     Int       @default(0) @map("like_count") @db.UnsignedInt
+  status        Int       @default(0) @db.TinyInt
+  createTime    DateTime  @default(now()) @map("create_time") @db.DateTime(0)
+  updateTime    DateTime  @updatedAt @map("update_time") @db.DateTime(0)
+  deletedAt     DateTime? @map("deleted_at") @db.DateTime(0)
+
+  post        Post      @relation(fields: [postId], references: [postId])
+  author      User      @relation("UserComments", fields: [userId], references: [userId])
+  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [commentId])
+  replies     Comment[] @relation("CommentReplies")
+  replyToUser User?     @relation("CommentReplyToUser", fields: [replyToUserId], references: [userId])
+
+  @@index([postId, parentId, createTime], map: "idx_post_parent")
+  @@index([userId, createTime], map: "idx_user")
+  @@map("comment")
+}
+
+model PostLike {
+  likeId     BigInt   @id @default(autoincrement()) @map("like_id") @db.UnsignedBigInt
+  postId     BigInt   @map("post_id") @db.UnsignedBigInt
+  userId     BigInt   @map("user_id") @db.UnsignedBigInt
+  status     Int      @default(1) @db.TinyInt
+  createTime DateTime @default(now()) @map("create_time") @db.DateTime(0)
+  updateTime DateTime @updatedAt @map("update_time") @db.DateTime(0)
+
+  post Post @relation(fields: [postId], references: [postId])
+  user User @relation(fields: [userId], references: [userId])
+
+  @@unique([userId, postId], map: "uk_user_post")
+  @@index([postId, status], map: "idx_post")
+  @@map("post_like")
+}
+
+model UserFollow {
+  followId    BigInt   @id @default(autoincrement()) @map("follow_id") @db.UnsignedBigInt
+  followerId  BigInt   @map("follower_id") @db.UnsignedBigInt
+  followingId BigInt   @map("following_id") @db.UnsignedBigInt
+  status      Int      @default(1) @db.TinyInt
+  createTime  DateTime @default(now()) @map("create_time") @db.DateTime(0)
+  updateTime  DateTime @updatedAt @map("update_time") @db.DateTime(0)
+
+  follower  User @relation("Follower", fields: [followerId], references: [userId])
+  following User @relation("Following", fields: [followingId], references: [userId])
+
+  @@unique([followerId, followingId], map: "uk_follower_following")
+  @@index([followingId, status], map: "idx_following")
+  @@map("user_follow")
+}
+
+model Message {
+  messageId  BigInt   @id @default(autoincrement()) @map("message_id") @db.UnsignedBigInt
+  toUserId   BigInt   @map("to_user_id") @db.UnsignedBigInt
+  fromUserId BigInt?  @map("from_user_id") @db.UnsignedBigInt
+  type       Int      @db.TinyInt
+  targetType Int      @map("target_type") @db.TinyInt
+  targetId   BigInt   @map("target_id") @db.UnsignedBigInt
+  content    String?  @db.VarChar(500)
+  isRead     Int      @default(0) @map("is_read") @db.TinyInt
+  createTime DateTime @default(now()) @map("create_time") @db.DateTime(0)
+
+  toUser   User  @relation("MessageToUser", fields: [toUserId], references: [userId])
+  fromUser User? @relation("MessageFromUser", fields: [fromUserId], references: [userId])
+
+  @@index([toUserId, isRead, createTime], map: "idx_to_unread")
+  @@map("message")
+}
+
+model Notice {
+  noticeId   BigInt    @id @default(autoincrement()) @map("notice_id") @db.UnsignedBigInt
+  title      String    @db.VarChar(100)
+  content    String    @db.Text
+  type       Int       @default(0) @db.TinyInt
+  status     Int       @default(0) @db.TinyInt
+  isTop      Int       @default(0) @map("is_top") @db.TinyInt
+  startTime  DateTime? @map("start_time") @db.DateTime(0)
+  endTime    DateTime? @map("end_time") @db.DateTime(0)
+  operatorId BigInt?   @map("operator_id") @db.UnsignedBigInt
+  createTime DateTime  @default(now()) @map("create_time") @db.DateTime(0)
+  updateTime DateTime  @updatedAt @map("update_time") @db.DateTime(0)
+
+  operator User? @relation("NoticeOperator", fields: [operatorId], references: [userId])
+
+  @@index([status, startTime, endTime], map: "idx_status_time")
+  @@map("notice")
+}
+
+model AdminLog {
+  logId      BigInt   @id @default(autoincrement()) @map("log_id") @db.UnsignedBigInt
+  adminId    BigInt   @map("admin_id") @db.UnsignedBigInt
+  action     String   @db.VarChar(64)
+  targetType String   @map("target_type") @db.VarChar(32)
+  targetId   BigInt?  @map("target_id") @db.UnsignedBigInt
+  beforeJson Json?    @map("before_json")
+  afterJson  Json?    @map("after_json")
+  ip         String?  @db.VarChar(64)
+  userAgent  String?  @map("user_agent") @db.VarChar(512)
+  createTime DateTime @default(now()) @map("create_time") @db.DateTime(0)
+
+  admin User @relation("AdminLogOperator", fields: [adminId], references: [userId])
+
+  @@index([adminId, createTime], map: "idx_admin_time")
+  @@index([targetType, targetId], map: "idx_target")
+  @@map("admin_log")
+}
+
+model Report {
+  reportId     BigInt    @id @default(autoincrement()) @map("report_id") @db.UnsignedBigInt
+  reporterId   BigInt    @map("reporter_id") @db.UnsignedBigInt
+  targetType   Int       @map("target_type") @db.TinyInt
+  targetId     BigInt    @map("target_id") @db.UnsignedBigInt
+  reasonType   Int       @map("reason_type") @db.TinyInt
+  reasonText   String?   @map("reason_text") @db.VarChar(500)
+  status       Int       @default(0) @db.TinyInt
+  handlerId    BigInt?   @map("handler_id") @db.UnsignedBigInt
+  handleResult String?   @map("handle_result") @db.VarChar(500)
+  createTime   DateTime  @default(now()) @map("create_time") @db.DateTime(0)
+  handleTime   DateTime? @map("handle_time") @db.DateTime(0)
+
+  reporter User  @relation("Reporter", fields: [reporterId], references: [userId])
+  handler  User? @relation("ReportHandler", fields: [handlerId], references: [userId])
+
+  @@index([status, createTime], map: "idx_status")
+  @@index([targetType, targetId], map: "idx_target")
+  @@map("report")
+}
+
+model SensitiveWord {
+  wordId     BigInt   @id @default(autoincrement()) @map("word_id") @db.UnsignedBigInt
+  word       String   @unique(map: "uk_word") @db.VarChar(100)
+  level      Int      @default(1) @db.TinyInt
+  category   String?  @db.VarChar(32)
+  status     Int      @default(0) @db.TinyInt
+  operatorId BigInt?  @map("operator_id") @db.UnsignedBigInt
+  createTime DateTime @default(now()) @map("create_time") @db.DateTime(0)
+  updateTime DateTime @updatedAt @map("update_time") @db.DateTime(0)
+
+  operator User? @relation(fields: [operatorId], references: [userId])
+
+  @@index([status], map: "idx_status")
+  @@map("sensitive_word")
+}
+
+model File {
+  fileId       BigInt   @id @default(autoincrement()) @map("file_id") @db.UnsignedBigInt
+  userId       BigInt   @map("user_id") @db.UnsignedBigInt
+  originalName String   @map("original_name") @db.VarChar(255)
+  storageType  String   @default("local") @map("storage_type") @db.VarChar(16)
+  relativePath String   @map("relative_path") @db.VarChar(255)
+  thumbPath    String?  @map("thumb_path") @db.VarChar(255)
+  url          String   @db.VarChar(512)
+  mimeType     String   @map("mime_type") @db.VarChar(64)
+  sizeBytes    Int      @map("size_bytes") @db.UnsignedInt
+  width        Int?
+  height       Int?
+  hashMd5      String?  @map("hash_md5") @db.Char(32)
+  business     String   @db.VarChar(32)
+  refCount     Int      @default(0) @map("ref_count") @db.UnsignedInt
+  status       Int      @default(0) @db.TinyInt
+  createTime   DateTime @default(now()) @map("create_time") @db.DateTime(0)
+  updateTime   DateTime @updatedAt @map("update_time") @db.DateTime(0)
+
+  user User @relation(fields: [userId], references: [userId])
+
+  @@index([userId], map: "idx_user")
+  @@index([business, status], map: "idx_business")
+  @@index([createTime], map: "idx_create_time")
+  @@index([hashMd5], map: "idx_hash")
+  @@map("file")
+}
+
+model AppConfig {
+  configKey   String   @id @map("config_key") @db.VarChar(64)
+  configValue String   @map("config_value") @db.Text
+  valueType   String   @default("string") @map("value_type") @db.VarChar(16)
+  description String?  @db.VarChar(200)
+  isPublic    Int      @default(0) @map("is_public") @db.TinyInt
+  updateTime  DateTime @updatedAt @map("update_time") @db.DateTime(0)
+
+  @@map("app_config")
+}
+
+model ProfileReview {
+  reviewId    BigInt    @id @default(autoincrement()) @map("review_id") @db.UnsignedBigInt
+  userId      BigInt    @map("user_id") @db.UnsignedBigInt
+  nickname    String?   @db.VarChar(64)
+  avatar      String?   @db.VarChar(512)
+  bio         String?   @db.VarChar(200)
+  gender      Int?      @db.TinyInt
+  age         Int?      @db.TinyInt
+  status      Int       @default(0) @db.TinyInt
+  rejectReason String?  @map("reject_reason") @db.VarChar(200)
+  handlerId   BigInt?   @map("handler_id") @db.UnsignedBigInt
+  handleTime  DateTime? @map("handle_time") @db.DateTime(0)
+  createTime  DateTime  @default(now()) @map("create_time") @db.DateTime(0)
+
+  user    User  @relation("ProfileReviewUser", fields: [userId], references: [userId])
+  handler User? @relation("ProfileReviewHandler", fields: [handlerId], references: [userId])
+
+  @@index([status, createTime], map: "idx_status")
+  @@index([userId], map: "idx_user")
+  @@map("profile_review")
+}

@@ -1,0 +1,133 @@
+{
+  /**
+   * pages.json - uni-app 页面路由配置
+   *
+   * 作用：声明小程序的所有页面路径、导航栏样式、底部 TabBar
+   * uni-app 编译时会根据此文件自动生成小程序的 app.json
+   *
+   * 注意：第一个页面（pages[0]）是小程序的启动页（首页）
+   */
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "CampusHub"
+      }
+    },
+    {
+      "path": "pages/detail/detail",
+      "style": {
+        "navigationBarTitleText": "帖子详情"
+      }
+    },
+    {
+      "path": "pages/publish/publish",
+      "style": {
+        "navigationBarTitleText": "发帖"
+      }
+    },
+    {
+      "path": "pages/mine/mine",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/message/message",
+      "style": {
+        "navigationBarTitleText": "消息"
+      }
+    },
+    {
+      "path": "pages/login/login",
+      "style": {
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/user/user",
+      "style": {
+        "navigationBarTitleText": "用户主页"
+      }
+    },
+    {
+      "path": "pages/myposts/myposts",
+      "style": {
+        "navigationBarTitleText": "我的帖子"
+      }
+    },
+    {
+      "path": "pages/notices/notices",
+      "style": {
+        "navigationBarTitleText": "公告通知"
+      }
+    },
+    {
+      "path": "pages/mycomments/mycomments",
+      "style": {
+        "navigationBarTitleText": "我的评论"
+      }
+    },
+    {
+      "path": "pages/settings/settings",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
+    },
+    {
+      "path": "pages/editprofile/editprofile",
+      "style": {
+        "navigationBarTitleText": "编辑资料"
+      }
+    },
+    {
+      "path": "pages/followlist/followlist",
+      "style": {
+        "navigationBarTitleText": "关注列表"
+      }
+    }
+  ],
+  /**
+   * 全局样式配置
+   * 作用于所有页面的导航栏和背景色
+   */
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "CampusHub",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F5F5"
+  },
+  /**
+   * 底部 TabBar 配置
+   * 最少 2 个，最多 5 个 tab 项
+   * 切换 tab 时页面不会销毁（与 navigateTo 不同），性能更好
+   *
+   * iconPath / selectedIconPath: 未选中/选中时的图标路径，放在 static/tabbar/ 下
+   */
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#007AFF",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tabbar/tab-home.png",
+        "selectedIconPath": "static/tabbar/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/message/message",
+        "text": "消息",
+        "iconPath": "static/tabbar/tab-msg.png",
+        "selectedIconPath": "static/tabbar/tab-msg-active.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "static/tabbar/tab-mine.png",
+        "selectedIconPath": "static/tabbar/tab-mine-active.png"
+      }
+    ]
+  }
+}

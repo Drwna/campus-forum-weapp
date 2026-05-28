@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.corepack/
+
+# Build output
+dist/
+build/
+.output/
+.turbo/
+.vite/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Server data
+data/
+uploads/
+server/data/
+
+# IDE
+.claude/
+.codegraph/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Miniapp build output
+miniapp/dist/
+miniapp/unpackage/
+miniapp/.hbuilderx/
+
+# Prisma
+server/prisma/migrations/*/migration.sql~
+server/prisma/migrations/**/migration.sql
+
+# Test
+coverage/
+
+# Temporary
+*.tmp
+*.temp
