@@ -10,28 +10,24 @@ build/
 .turbo/
 .vite/
 
-# Environment variables
-.env
-.env.*
-!.env.example
-
 # Logs
 *.log
 logs/
 
-# Database
+# Database runtime files
 *.db
 *.db-shm
 *.db-wal
 
-# Server data
+# Server runtime data
 data/
 uploads/
 server/data/
 
-# IDE
-.claude/
+# CodeGraph
 .codegraph/
+
+# IDE
 .vscode/
 .idea/
 *.swp
@@ -46,9 +42,8 @@ miniapp/dist/
 miniapp/unpackage/
 miniapp/.hbuilderx/
 
-# Prisma
-server/prisma/migrations/*/migration.sql~
-server/prisma/migrations/**/migration.sql
+# Prisma migrations (only keep schema.prisma)
+server/prisma/migrations/
 
 # Test
 coverage/
